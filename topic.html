@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debate Archive | Topic Database</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        topic: { 
+                            50: 'var(--topic-50)', 
+                            100: 'var(--topic-100)', 
+                            200: 'var(--topic-200)', 
+                            400: 'var(--topic-400)', 
+                            500: 'var(--topic-500)', 
+                            600: 'var(--topic-600)', 
+                            700: 'var(--topic-700)' 
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Fallback default colors before JS kicks in */
+        :root {
+            --topic-50: #f8fafc;
+            --topic-100: #f1f5f9;
+            --topic-200: #e2e8f0;
+            --topic-400: #94a3b8;
+            --topic-500: #64748b;
+            --topic-600: #475569;
+            --topic-700: #334155;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
+        [x-cloak] { display: none !important; } 
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen" x-data="debateApp()" x-cloak>
+
+    <div class="max-w-4xl mx-auto px-4 py-12 space-y-8">
+
+        <!-- Breadcrumb Navigation -->
+        <nav class="flex items-center text-sm font-medium text-slate-500 space-x-2">
+            <!-- Ensure your homepage HTML file is properly linked here if not named index.html -->
+            <a href="index.html" class="hover:text-slate-900 transition-colors">Home</a>
+            <span>/</span>
+            <a href="index.html" class="hover:text-slate-900 transition-colors">Debate Topics</a>
+            <span>/</span>
+            <span class="text-topic-600 bg-topic-50 px-2 py-1 rounded-md" x-text="topicDetails.title"></span>
+        </nav>
+
+        <!-- TIER 1: TOPIC HEADER -->
+        <header class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative">
+            <div class="h-2 w-full bg-topic-600"></div>
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-topic-100 text-topic-700" x-text="topicDetails.category || 'Active Topic'">
+                    </span>
+                    <span class="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                        <span x-text="claims.length"></span> Claims Documented
+                    </span>
+                </div>
+                
+                <h1 class="text-4xl font-bold text-slate-900 mb-4" x-text="topicDetails.title"></h1>
+                <p class="text-lg text-slate-600 leading-relaxed max-w-3xl" x-text="topicDetails.description"></p>
+                
+                <!-- IMPORT / EXPORT BUTTONS -->
+                <div class="mt-6 flex flex-wrap gap-4 items-center">
+                    <button @click="exportData()" class="flex items-center gap-2 text-sm text-topic-600 font-medium hover:bg-topic-50 px-3 py-1.5 rounded transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Export Backup (.json)
+                    </button>
+                    
+                    <button @click="$refs.fileInput.click()" class="flex items-center gap-2 text-sm text-topic-600 font-medium hover:bg-topic-50 px-3 py-1.5 rounded transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Import File
+                    </button>
+                    <input type="file" x-ref="fileInput" class="hidden" accept=".json" @change="importData">
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="flex items-center justify-between mb-6 px-2">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Primary Claims</h2>
+                </div>
+                <button @click="openClaimModal()" class="flex items-center gap-2 bg-topic-600 text-white px-4 py-2 rounded-lg hover:bg-topic-700 transition-colors font-medium text-sm shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add New Claim
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="(claim, claimIndex) in claims" :key="claim.id">
+                    
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden" x-data="{ claimOpen: false }">
+                        
+                        <div class="w-full px-6 py-5 flex items-start justify-between hover:bg-slate-50 transition-colors group">
+                            <div @click="claimOpen = !claimOpen" class="flex items-start gap-4 flex-grow cursor-pointer">
+                                <div class="mt-1 bg-topic-100 text-topic-600 rounded flex items-center justify-center w-8 h-8 font-bold flex-shrink-0" x-text="claimIndex + 1"></div>
+                                <div class="text-left">
+                                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Claim</span>
+                                    <h3 class="text-xl font-bold text-slate-900" x-text="claim.title"></h3>
+                                </div>
+                            </div>
+                            
+                            <!-- Claim Admin Controls -->
+                            <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+                                <div class="flex flex-col opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                    <button @click.stop="moveClaimUp(claimIndex)" :disabled="claimIndex === 0" class="text-slate-400 hover:text-topic-600 disabled:opacity-20 disabled:hover:text-slate-400 p-1" title="Move Claim Up">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button @click.stop="moveClaimDown(claimIndex)" :disabled="claimIndex === claims.length - 1" class="text-slate-400 hover:text-topic-600 disabled:opacity-20 disabled:hover:text-slate-400 p-1" title="Move Claim Down">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                                <button @click.stop="deleteClaim(claim.id)" class="text-slate-300 hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-2" title="Delete Claim">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                                <button @click="claimOpen = !claimOpen" class="mt-2 text-slate-400 transform transition-transform duration-300 focus:outline-none" :class="claimOpen ? 'rotate-180' : ''">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div x-show="claimOpen" x-collapse>
+                            <div class="p-6 pt-0 border-t border-slate-100 bg-slate-50/50">
+                                <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 mt-4">Supporting Arguments</p>
+                                
+                                <div class="space-y-3">
+                                    <template x-for="(arg, argIndex) in claim.arguments" :key="arg.id">
+                                        <div class="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm" x-data="{ argOpen: false }">
+                                            
+                                            <div class="w-full px-5 py-4 text-left flex justify-between items-center hover:bg-slate-50 transition-colors border-l-4 border-topic-500 group">
+                                                <div @click="argOpen = !argOpen" class="flex-grow cursor-pointer pr-4">
+                                                    <span class="font-semibold text-slate-800" x-text="arg.title"></span>
+                                                </div>
+                                                
+                                                <div class="flex items-center gap-2 flex-shrink-0">
+                                                    <div class="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity mr-2">
+                                                        <button @click.stop="moveArgUp(claimIndex, argIndex)" :disabled="argIndex === 0" class="text-slate-400 hover:text-topic-600 disabled:opacity-20 disabled:hover:text-slate-400 p-1.5 bg-white shadow-sm border border-slate-200 rounded hover:bg-slate-50" title="Move Argument Up">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"></path></svg>
+                                                        </button>
+                                                        <button @click.stop="moveArgDown(claimIndex, argIndex)" :disabled="argIndex === claim.arguments.length - 1" class="text-slate-400 hover:text-topic-600 disabled:opacity-20 disabled:hover:text-slate-400 p-1.5 bg-white shadow-sm border border-slate-200 rounded hover:bg-slate-50" title="Move Argument Down">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                                                        </button>
+                                                        <button @click.stop="deleteArg(claim.id, arg.id)" class="text-slate-300 hover:text-red-500 p-1.5 bg-white shadow-sm border border-slate-200 rounded hover:bg-red-50" title="Delete Argument">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                        </button>
+                                                    </div>
+                                                    <button @click="argOpen = !argOpen" class="focus:outline-none">
+                                                        <svg :class="argOpen ? 'rotate-180' : ''" class="w-5 h-5 text-slate-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div x-show="argOpen" x-collapse class="bg-slate-50 p-5 border-t border-slate-100">
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    
+                                                    <template x-for="source in arg.sources" :key="source.id">
+                                                        <a :href="source.type === 'link' ? source.url : '#'" 
+                                                           :target="source.type === 'link' ? '_blank' : null"
+                                                           @click="if(source.type === 'file') { $event.preventDefault(); openFile(source.url); }"
+                                                           class="block bg-white p-4 rounded-lg border border-slate-200 hover:border-topic-400 hover:shadow-md transition-all group relative">
+                                                            
+                                                            <button @click.prevent="deleteSource(claim.id, arg.id, source.id)" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 hidden group-hover:block" title="Remove Source">
+                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                            </button>
+
+                                                            <div class="flex items-center gap-2 mb-2">
+                                                                <template x-if="source.type === 'file'">
+                                                                    <svg class="w-4 h-4 text-topic-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                                                </template>
+                                                                <template x-if="source.type !== 'file'">
+                                                                    <svg class="w-4 h-4 text-topic-500" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path></svg>
+                                                                </template>
+                                                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wide" x-text="source.publisher"></span>
+                                                            </div>
+                                                            <h4 class="font-medium text-topic-700 mb-2 group-hover:underline" x-text="source.title"></h4>
+                                                            <p class="text-sm text-slate-600 italic border-l-2 border-topic-200 pl-3" x-text="`&quot;${source.quote}&quot;`"></p>
+                                                        </a>
+                                                    </template>
+
+                                                    <button @click="openSourceModal(claim.id, arg.id)" class="flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed border-slate-300 text-slate-500 hover:border-topic-400 hover:text-topic-600 hover:bg-topic-50 transition-all min-h-[120px]">
+                                                        <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                                        <span class="text-sm font-semibold">Add New Source</span>
+                                                    </button>
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <button @click="openArgModal(claim.id)" class="w-full mt-2 flex items-center justify-center p-3 rounded-lg border-2 border-dashed border-slate-300 text-slate-500 hover:border-topic-400 hover:text-topic-600 hover:bg-topic-50 transition-all">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        <span class="text-sm font-semibold">Add New Argument</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </main>
+    </div>
+
+    <!-- ADD SOURCE MODAL -->
+    <div x-show="isModalOpen" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="isModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" @click="closeModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div x-show="isModalOpen" x-transition class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-bold text-slate-900 mb-4" id="modal-title">Add Evidence / Source</h3>
+                    <form @submit.prevent="submitSource" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Source Type</label>
+                            <select x-model="newSource.type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-slate-300 focus:outline-none focus:ring-topic-500 focus:border-topic-500 sm:text-sm rounded-md">
+                                <option value="link">Web Link (URL)</option>
+                                <option value="file">Upload Document/Image</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Publisher / Author</label>
+                            <input type="text" x-model="newSource.publisher" required placeholder="e.g. United Nations, PDF Document..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Title of Source</label>
+                            <input type="text" x-model="newSource.title" required placeholder="e.g. Report on Urban Warfare" class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Key Quote (Proof)</label>
+                            <textarea x-model="newSource.quote" required rows="2" placeholder="Paste the exact text that proves the argument..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500"></textarea>
+                        </div>
+                        <div x-show="newSource.type === 'link'">
+                            <label class="block text-sm font-medium text-slate-700">URL Link</label>
+                            <input type="url" x-model="newSource.url" :required="newSource.type === 'link'" placeholder="https://..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500">
+                        </div>
+                        <div x-show="newSource.type === 'file'">
+                            <label class="block text-sm font-medium text-slate-700">Upload File</label>
+                            <input type="file" @change="handleFileUpload" accept="image/*,.pdf,.doc,.docx" :required="newSource.type === 'file'" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-topic-50 file:text-topic-700 hover:file:bg-topic-100">
+                            <p class="text-xs text-slate-400 mt-1">Note: Since this is local, files are converted to base64. Keep files under 2MB.</p>
+                        </div>
+                        <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-2">
+                            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-topic-600 text-base font-medium text-white hover:bg-topic-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-topic-500 sm:w-auto sm:text-sm">Save Source</button>
+                            <button type="button" @click="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-topic-500 sm:mt-0 sm:w-auto sm:text-sm">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD CLAIM MODAL -->
+    <div x-show="isClaimModalOpen" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="isClaimModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" @click="closeClaimModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div x-show="isClaimModalOpen" x-transition class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-bold text-slate-900 mb-4">Add New Claim</h3>
+                    <form @submit.prevent="submitClaim" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Claim Title</label>
+                            <textarea x-model="newClaimTitle" required rows="2" placeholder="e.g. The blockade on Gaza is a justified security measure..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500"></textarea>
+                        </div>
+                        <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-2">
+                            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-topic-600 text-base font-medium text-white hover:bg-topic-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-topic-500 sm:w-auto sm:text-sm">Save Claim</button>
+                            <button type="button" @click="closeClaimModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-topic-500 sm:mt-0 sm:w-auto sm:text-sm">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD ARGUMENT MODAL -->
+    <div x-show="isArgModalOpen" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="isArgModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" @click="closeArgModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div x-show="isArgModalOpen" x-transition class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-bold text-slate-900 mb-4">Add New Argument</h3>
+                    <form @submit.prevent="submitArg" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Argument Title</label>
+                            <textarea x-model="newArgTitle" required rows="2" placeholder="e.g. Blockades are recognized naval warfare tactics..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500"></textarea>
+                        </div>
+                        <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-2">
+                            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-topic-600 text-base font-medium text-white hover:bg-topic-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-topic-500 sm:w-auto sm:text-sm">Save Argument</button>
+                            <button type="button" @click="closeArgModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-topic-500 sm:mt-0 sm:w-auto sm:text-sm">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THE JAVASCRIPT ENGINE -->
+    <script>
+        // Color Palettes Mapping for the dynamically generated CSS Variables
+        const colorPalettes = {
+            blue: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
+            rose: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c' },
+            emerald: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857' },
+            amber: { 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309' },
+            indigo: { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
+            slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155' },
+            purple: { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce' },
+            teal: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e' },
+            cyan: { 50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2', 700: '#0e7490' },
+            orange: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c' },
+            fuchsia: { 50: '#fdf4ff', 100: '#fae8ff', 200: '#f5d0fe', 400: '#e879f9', 500: '#d946ef', 600: '#c026d3', 700: '#a21caf' },
+            lime: { 50: '#f7fee7', 100: '#ecfccb', 200: '#d9f99d', 400: '#a3e635', 500: '#84cc16', 600: '#65a30d', 700: '#4d7c0f' },
+            yellow: { 50: '#fefce8', 100: '#fef9c3', 200: '#fef08a', 400: '#facc15', 500: '#eab308', 600: '#ca8a04', 700: '#a16207' }
+        };
+
+        function debateApp() {
+            return {
+                topicId: null,
+                topicDetails: { title: 'Loading...', description: '', color: 'blue' },
+                claims: [],
+                
+                isModalOpen: false,
+                isClaimModalOpen: false,
+                isArgModalOpen: false,
+                activeClaimId: null,
+                activeArgId: null,
+                
+                newSource: { type: 'link', publisher: '', title: '', quote: '', url: '' },
+                newClaimTitle: '',
+                newArgTitle: '',
+
+                init() {
+                    // 1. Get the topic ID from the URL (e.g., ?topic=AIEthics)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    let detectedTopic = urlParams.get('topic');
+
+                    // If no topic is found in the URL, load a safe default
+                    // instead of redirecting, preventing "file not found" errors.
+                    if (!detectedTopic) {
+                        detectedTopic = 'IsraelPalestine'; 
+                    }
+                    
+                    this.topicId = detectedTopic;
+
+                    // 2. Load the metadata from the Homepage's master list
+                    const allTopics = JSON.parse(localStorage.getItem('debateArchive_Topics')) || [];
+                    const currentTopic = allTopics.find(t => t.id === this.topicId);
+
+                    if (currentTopic) {
+                        this.topicDetails = currentTopic;
+                        document.title = 'Debate Archive | ' + this.topicDetails.title;
+                    } else {
+                        // Fallback if the URL has an ID but it was deleted
+                        this.topicDetails = { title: 'New Topic', description: 'Start adding claims to begin your archive.', color: 'slate', category: 'General' };
+                    }
+
+                    // 3. Apply the Theme Colors dynamically
+                    const root = document.documentElement;
+                    const themeColors = colorPalettes[this.topicDetails.color] || colorPalettes['blue'];
+                    for (const [weight, hex] of Object.entries(themeColors)) {
+                        root.style.setProperty(`--topic-${weight}`, hex);
+                    }
+
+                    // 4. Load the specific data for THIS topic
+                    const savedData = localStorage.getItem('debateData_' + this.topicId);
+                    if (savedData) {
+                        this.claims = JSON.parse(savedData);
+                    } else {
+                        this.claims = [];
+                        this.saveData(); // Initializes empty structure
+                    }
+                },
+
+                saveData() {
+                    localStorage.setItem('debateData_' + this.topicId, JSON.stringify(this.claims));
+                },
+
+                // EXPORT / IMPORT LOGIC
+                exportData() {
+                    const dataStr = JSON.stringify(this.claims, null, 2);
+                    const blob = new Blob([dataStr], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `debate_archive_${this.topicId}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                },
+
+                importData(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const parsedData = JSON.parse(e.target.result);
+                            if (Array.isArray(parsedData)) {
+                                this.claims = parsedData.map(claim => ({
+                                    ...claim,
+                                    id: typeof claim.id === 'string' && !isNaN(claim.id) ? Number(claim.id) : claim.id,
+                                    title: claim.title || claim.text || 'Untitled Claim',
+                                    arguments: (claim.arguments || []).map(arg => ({
+                                        ...arg,
+                                        id: typeof arg.id === 'string' && !isNaN(arg.id) ? Number(arg.id) : arg.id,
+                                        title: arg.title || arg.text || arg.description || 'Untitled Argument',
+                                        sources: (arg.sources || []).map(source => ({
+                                            ...source,
+                                            id: typeof source.id === 'string' && !isNaN(source.id) ? Number(source.id) : source.id,
+                                        }))
+                                    }))
+                                }));
+                                this.saveData();
+                                alert("Database imported successfully!");
+                            } else {
+                                alert("Invalid file format. Data must be an array.");
+                            }
+                        } catch (err) {
+                            alert("Error reading file. Make sure it is a valid .json export.");
+                        }
+                    };
+                    reader.readAsText(file);
+                    event.target.value = '';
+                },
+
+                // MODAL LOGIC
+                openSourceModal(claimId, argId) {
+                    this.activeClaimId = claimId;
+                    this.activeArgId = argId;
+                    this.newSource = { type: 'link', publisher: '', title: '', quote: '', url: '' };
+                    this.isModalOpen = true;
+                },
+                closeModal() {
+                    this.isModalOpen = false;
+                    this.activeClaimId = null;
+                    this.activeArgId = null;
+                },
+
+                openClaimModal() { this.newClaimTitle = ''; this.isClaimModalOpen = true; },
+                closeClaimModal() { this.isClaimModalOpen = false; },
+                submitClaim() {
+                    this.claims.unshift({ id: Date.now(), title: this.newClaimTitle, arguments: [] });
+                    this.saveData();
+                    this.closeClaimModal();
+                },
+
+                openArgModal(claimId) { this.activeClaimId = claimId; this.newArgTitle = ''; this.isArgModalOpen = true; },
+                closeArgModal() { this.isArgModalOpen = false; this.activeClaimId = null; },
+                submitArg() {
+                    const claim = this.claims.find(c => c.id === this.activeClaimId);
+                    if (claim) {
+                        claim.arguments.push({ id: Date.now(), title: this.newArgTitle, sources: [] });
+                        this.saveData();
+                    }
+                    this.closeArgModal();
+                },
+
+                // FILE UPLOAD LOGIC
+                handleFileUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => { this.newSource.url = e.target.result; };
+                    reader.readAsDataURL(file);
+                },
+
+                submitSource() {
+                    const claim = this.claims.find(c => c.id === this.activeClaimId);
+                    const arg = claim.arguments.find(a => a.id === this.activeArgId);
+                    arg.sources.push({
+                        id: Date.now(),
+                        type: this.newSource.type,
+                        publisher: this.newSource.publisher,
+                        title: this.newSource.title,
+                        quote: this.newSource.quote,
+                        url: this.newSource.url
+                    });
+                    this.saveData();
+                    this.closeModal();
+                },
+
+                // DELETE LOGIC
+                deleteSource(claimId, argId, sourceId) {
+                    if(!confirm("Remove this source?")) return;
+                    const claim = this.claims.find(c => c.id === claimId);
+                    const arg = claim.arguments.find(a => a.id === argId);
+                    arg.sources = arg.sources.filter(s => s.id !== sourceId);
+                    this.saveData();
+                },
+                deleteClaim(claimId) {
+                    if(!confirm("Are you sure you want to delete this entire claim and all its arguments/sources? This cannot be undone.")) return;
+                    this.claims = this.claims.filter(c => c.id !== claimId);
+                    this.saveData();
+                },
+                deleteArg(claimId, argId) {
+                    if(!confirm("Are you sure you want to delete this argument and its sources?")) return;
+                    const claim = this.claims.find(c => c.id === claimId);
+                    if (claim) {
+                        claim.arguments = claim.arguments.filter(a => a.id !== argId);
+                        this.saveData();
+                    }
+                },
+
+                // EXACT BLOB LOGIC FOR FILES
+                openFile(dataUrl) {
+                    try {
+                        const arr = dataUrl.split(',');
+                        const mime = arr[0].match(/:(.*?);/)[1];
+                        
+                        const bstr = atob(arr[1]);
+                        let n = bstr.length;
+                        const u8arr = new Uint8Array(n);
+                        while(n--){
+                            u8arr[n] = bstr.charCodeAt(n);
+                        }
+                        
+                        const blob = new Blob([u8arr], {type: mime});
+                        const blobUrl = URL.createObjectURL(blob);
+                        window.open(blobUrl, '_blank');
+                    } catch (err) {
+                        console.error("File open error:", err);
+                        alert("Error opening file. It may be corrupted.");
+                    }
+                },
+
+                moveClaimUp(index) {
+                    if (index > 0) {
+                        const temp = this.claims[index];
+                        this.claims[index] = this.claims[index - 1];
+                        this.claims[index - 1] = temp;
+                        this.saveData();
+                    }
+                },
+                moveClaimDown(index) {
+                    if (index < this.claims.length - 1) {
+                        const temp = this.claims[index];
+                        this.claims[index] = this.claims[index + 1];
+                        this.claims[index + 1] = temp;
+                        this.saveData();
+                    }
+                },
+                moveArgUp(claimIndex, argIndex) {
+                    if (argIndex > 0) {
+                        const args = this.claims[claimIndex].arguments;
+                        const temp = args[argIndex];
+                        args[argIndex] = args[argIndex - 1];
+                        args[argIndex - 1] = temp;
+                        this.saveData();
+                    }
+                },
+                moveArgDown(claimIndex, argIndex) {
+                    const args = this.claims[claimIndex].arguments;
+                    if (argIndex < args.length - 1) {
+                        const temp = args[argIndex];
+                        args[argIndex] = args[argIndex + 1];
+                        args[argIndex + 1] = temp;
+                        this.saveData();
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
