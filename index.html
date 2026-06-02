@@ -109,34 +109,34 @@
 
                 <!-- Dynamic Topic Cards Loop -->
                 <template x-for="(topic, index) in topics" :key="topic.id">
-                    
+
                     <div @click="goToTopic(topic.id)" class="group flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5 cursor-pointer relative">
-                        
+
                         <!-- Top Accent Border (Dynamic Color) -->
                         <div class="h-2 w-full transition-colors" :class="colorMap[topic.color].border"></div>
-                        
+
                         <div class="p-6 flex flex-col flex-grow">
                             <!-- Category Badge and Icon -->
                             <div class="flex justify-between items-start mb-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider transition-colors" 
-                                      :class="colorMap[topic.color].badgeBg + ' ' + colorMap[topic.color].badgeText" 
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider transition-colors"
+                                      :class="colorMap[topic.color].badgeBg + ' ' + colorMap[topic.color].badgeText"
                                       x-text="topic.category">
                                 </span>
                                 <!-- Icon that changes text color on hover -->
-                                <div class="flex items-center justify-center text-slate-300 transition-colors duration-300" 
+                                <div class="flex items-center justify-center text-slate-300 transition-colors duration-300"
                                      :class="colorMap[topic.color].iconHoverText">
                                     <svg class="w-5 h-5 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                 </div>
                             </div>
-                            
+
                             <!-- Content -->
                             <h2 class="text-2xl font-bold text-slate-900 mb-3 transition-colors duration-300" :class="colorMap[topic.color].titleHover" x-text="topic.title"></h2>
                             <p class="text-slate-600 text-sm leading-relaxed mb-6 flex-grow" x-text="topic.description"></p>
-                            
+
                             <!-- Footer -->
                             <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-sm">
                                 <span class="font-semibold text-slate-500" x-text="getClaimCount(topic.id) + ' Claims'"></span>
-                                
+
                                 <!-- Admin Controls (Reorder & Delete) - Visible on hover -->
                                 <div class="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                     <button @click.stop="moveTopic(index, -1)" :disabled="index === 0" class="p-1.5 text-slate-400 hover:text-slate-800 disabled:opacity-20 disabled:hover:text-slate-400 rounded transition-colors" title="Move Up">
@@ -165,6 +165,11 @@
 
             </div>
         </main>
+
+        <!-- Global Footer -->
+        <footer class="mt-16 pb-4 text-center text-sm text-slate-400 font-medium">
+            Designed & Built by <span class="text-slate-600 font-bold">Omer Tal</span>
+        </footer>
     </div>
 
     <div x-show="isCreateModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" x-cloak>
