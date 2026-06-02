@@ -66,12 +66,12 @@
                 <!-- Master Export/Import Controls (Right Aligned) -->
                 <div class="flex items-center justify-center md:justify-end gap-3 flex-1">
                     <button @click="exportData()" class="flex items-center gap-2 text-sm text-slate-700 bg-white hover:text-slate-900 font-bold px-4 py-2 rounded-full transition-all duration-300 shadow shadow-slate-200 hover:shadow-md hover:-translate-y-0.5 border border-slate-200/60">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                         Export
                     </button>
 
                     <button @click="$refs.fileInput.click()" class="flex items-center gap-2 text-sm text-white bg-slate-800 hover:bg-slate-900 font-bold px-4 py-2 rounded-full transition-all duration-300 shadow-md shadow-slate-300 hover:shadow-lg hover:-translate-y-0.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         Import
                     </button>
                     <input type="file" x-ref="fileInput" class="hidden" accept=".json" @change="importData">
@@ -80,18 +80,8 @@
 
             <!-- Main Title & Subtitle -->
             <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-5 mb-6 max-w-3xl mx-auto">
-
-                <!-- Your 4-Tier Cards Logo -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linejoin="round" class="w-14 h-14 md:w-16 md:h-16 drop-shadow-md shrink-0">
-                    <!-- Tier 4: Source (Amber) -->
-                    <rect x="10" y="13" width="12" height="9" rx="1.5" fill="#fef3c7" stroke="#f59e0b"></rect>
-                    <!-- Tier 3: Argument (Emerald) -->
-                    <rect x="7" y="9" width="12" height="9" rx="1.5" fill="#d1fae5" stroke="#10b981"></rect>
-                    <!-- Tier 2: Claim (Blue) -->
-                    <rect x="4" y="5" width="12" height="9" rx="1.5" fill="#dbeafe" stroke="#3b82f6"></rect>
-                    <!-- Tier 1: Topic (Red/Rose) -->
-                    <rect x="1" y="1" width="12" height="9" rx="1.5" fill="#ffe4e6" stroke="#e11d48"></rect>
-                </svg>
+                <!-- Your Image-Based Logo -->
+                <img src="icon/android-chrome-512x512.png" alt="Debate Archive Logo" class="w-14 h-14 md:w-16 md:h-16 drop-shadow-md shrink-0">
 
                 <h1 class="text-4xl md:text-5xl font-bold text-slate-800 tracking-tight text-center md:text-left">
                     Debate<span class="font-normal text-slate-500">Archive</span>
