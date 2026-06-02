@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Debate Archive | Topic Database</title>
-    
+
+    <link rel="apple-touch-icon" sizes="180x180" href="icon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
+    <link rel="icon" href="icon/favicon.ico">
+    <link rel="manifest" href="icon/site.webmanifest">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -18,14 +24,14 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        topic: { 
-                            50: 'var(--topic-50)', 
-                            100: 'var(--topic-100)', 
-                            200: 'var(--topic-200)', 
-                            400: 'var(--topic-400)', 
-                            500: 'var(--topic-500)', 
-                            600: 'var(--topic-600)', 
-                            700: 'var(--topic-700)' 
+                        topic: {
+                            50: 'var(--topic-50)',
+                            100: 'var(--topic-100)',
+                            200: 'var(--topic-200)',
+                            400: 'var(--topic-400)',
+                            500: 'var(--topic-500)',
+                            600: 'var(--topic-600)',
+                            700: 'var(--topic-700)'
                         }
                     }
                 }
@@ -43,9 +49,20 @@
             --topic-600: #475569;
             --topic-700: #334155;
         }
-        body { font-family: 'Inter', sans-serif; }
-        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
-        [x-cloak] { display: none !important; } 
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
 </head>
 
