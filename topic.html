@@ -63,10 +63,20 @@
         [x-cloak] {
             display: none !important;
         }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen" x-data="debateApp()" x-cloak>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen" :class="{ 'overflow-hidden': isModalOpen || isClaimModalOpen || isArgModalOpen }" x-data="debateApp()" x-cloak>
 
     <div class="max-w-4xl mx-auto px-4 py-12 space-y-8">
 
@@ -269,7 +279,7 @@
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div x-show="isModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" @click="closeModal()"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div x-show="isModalOpen" x-transition class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <div x-show="isModalOpen" x-transition class="inline-block align-bottom bg-white rounded-xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full max-h-[90vh] overflow-y-auto no-scrollbar">
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <h3 class="text-lg leading-6 font-bold text-slate-900 mb-4" id="modal-title">Add Evidence / Source / Premise</h3>
                     <form @submit.prevent="submitSource" class="space-y-4">
@@ -281,33 +291,33 @@
                                 <option value="premise">Premise (Just Text)</option>
                             </select>
                         </div>
-                        
+
                         <div x-show="newSource.type !== 'premise'">
                             <label class="block text-sm font-medium text-slate-700">Publisher / Author</label>
                             <input type="text" x-model="newSource.publisher" :required="newSource.type !== 'premise'" placeholder="Name of the author, publisher, or organization..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500">
                         </div>
-                        
+
                         <div x-show="newSource.type !== 'premise'">
                             <label class="block text-sm font-medium text-slate-700">Title of Source</label>
                             <input type="text" x-model="newSource.title" :required="newSource.type !== 'premise'" placeholder="Title of the article, document, or book..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500">
                         </div>
-                        
+
                         <div x-show="newSource.type !== 'premise'">
                             <label class="block text-sm font-medium text-slate-700">Key Quote (Proof)</label>
-                            <textarea x-model="newSource.quote" :required="newSource.type !== 'premise'" rows="2" placeholder="Paste the exact text that proves the argument..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500"></textarea>
+                            <textarea x-model="newSource.quote" :required="newSource.type !== 'premise'" rows="2" placeholder="Paste the exact text that proves the argument..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500 resize-none"></textarea>
                         </div>
 
                         <!-- Only shows for premise type -->
                         <div x-show="newSource.type === 'premise'">
                             <label class="block text-sm font-medium text-slate-700">Premise (Just Text)</label>
-                            <textarea x-model="newSource.quote" :required="newSource.type === 'premise'" rows="3" placeholder="Enter the logical premise or statement..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500"></textarea>
+                            <textarea x-model="newSource.quote" :required="newSource.type === 'premise'" rows="3" placeholder="Enter the logical premise or statement..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500 resize-none"></textarea>
                         </div>
 
                         <div x-show="newSource.type === 'link'">
                             <label class="block text-sm font-medium text-slate-700">URL Link</label>
                             <input type="url" x-model="newSource.url" :required="newSource.type === 'link'" placeholder="https://..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500">
                         </div>
-                        
+
                         <div x-show="newSource.type === 'file'">
                             <label class="block text-sm font-medium text-slate-700">Upload File</label>
                             <input type="file" @change="handleFileUpload" accept="image/*,.pdf,.doc,.docx" :required="newSource.type === 'file'" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-topic-50 file:text-topic-700 hover:file:bg-topic-100">
@@ -335,7 +345,7 @@
                     <form @submit.prevent="submitClaim" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700">Claim Title</label>
-                            <textarea x-model="newClaimTitle" required rows="2" placeholder="Enter the core claim or thesis statement..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500"></textarea>
+                            <textarea x-model="newClaimTitle" required rows="2" placeholder="Enter the core claim or thesis statement..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500 resize-none"></textarea>
                         </div>
                         <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-2">
                             <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-topic-600 text-base font-medium text-white hover:bg-topic-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-topic-500 sm:w-auto sm:text-sm">Save Claim</button>
@@ -358,7 +368,7 @@
                     <form @submit.prevent="submitArg" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700">Argument Title</label>
-                            <textarea x-model="newArgTitle" required rows="2" placeholder="Enter a supporting argument or logical point..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500"></textarea>
+                            <textarea x-model="newArgTitle" required rows="2" placeholder="Enter a supporting argument or logical point..." class="mt-1 p-2 w-full border border-slate-300 rounded-md focus:ring-topic-500 focus:border-topic-500 resize-none"></textarea>
                         </div>
                         <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-2">
                             <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-topic-600 text-base font-medium text-white hover:bg-topic-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-topic-500 sm:w-auto sm:text-sm">Save Argument</button>
@@ -394,13 +404,13 @@
                 topicId: null,
                 topicDetails: { title: 'Loading...', description: '', color: 'blue' },
                 claims: [],
-                
+
                 isModalOpen: false,
                 isClaimModalOpen: false,
                 isArgModalOpen: false,
                 activeClaimId: null,
                 activeArgId: null,
-                
+
                 newSource: { type: 'link', publisher: '', title: '', quote: '', url: '' },
                 newClaimTitle: '',
                 newArgTitle: '',
@@ -413,9 +423,9 @@
                     // If no topic is found in the URL, load a safe default
                     // instead of redirecting, preventing "file not found" errors.
                     if (!detectedTopic) {
-                        detectedTopic = 'IsraelPalestine'; 
+                        detectedTopic = 'IsraelPalestine';
                     }
-                    
+
                     this.topicId = detectedTopic;
 
                     // 2. Load the metadata from the Homepage's master list
@@ -456,7 +466,7 @@
                     const dataStr = JSON.stringify(this.claims, null, 2);
                     const blob = new Blob([dataStr], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
-                    
+
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `debate_archive_${this.topicId}.json`;
@@ -558,19 +568,19 @@
 
                 // DELETE LOGIC
                 deleteSource(claimId, argId, sourceId) {
-                    if(!confirm("Remove this item?")) return;
+                    if (!confirm("Remove this item?")) return;
                     const claim = this.claims.find(c => c.id === claimId);
                     const arg = claim.arguments.find(a => a.id === argId);
                     arg.sources = arg.sources.filter(s => s.id !== sourceId);
                     this.saveData();
                 },
                 deleteClaim(claimId) {
-                    if(!confirm("Are you sure you want to delete this entire claim and all its arguments/sources? This cannot be undone.")) return;
+                    if (!confirm("Are you sure you want to delete this entire claim and all its arguments/sources? This cannot be undone.")) return;
                     this.claims = this.claims.filter(c => c.id !== claimId);
                     this.saveData();
                 },
                 deleteArg(claimId, argId) {
-                    if(!confirm("Are you sure you want to delete this argument and its sources?")) return;
+                    if (!confirm("Are you sure you want to delete this argument and its sources?")) return;
                     const claim = this.claims.find(c => c.id === claimId);
                     if (claim) {
                         claim.arguments = claim.arguments.filter(a => a.id !== argId);
@@ -583,15 +593,15 @@
                     try {
                         const arr = dataUrl.split(',');
                         const mime = arr[0].match(/:(.*?);/)[1];
-                        
+
                         const bstr = atob(arr[1]);
                         let n = bstr.length;
                         const u8arr = new Uint8Array(n);
-                        while(n--){
+                        while (n--) {
                             u8arr[n] = bstr.charCodeAt(n);
                         }
-                        
-                        const blob = new Blob([u8arr], {type: mime});
+
+                        const blob = new Blob([u8arr], { type: mime });
                         const blobUrl = URL.createObjectURL(blob);
                         window.open(blobUrl, '_blank');
                     } catch (err) {

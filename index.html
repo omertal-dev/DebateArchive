@@ -36,10 +36,20 @@
         [x-cloak] {
             display: none !important;
         }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen" x-data="topicsApp()" x-cloak>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen" :class="{ 'overflow-hidden': isCreateModalOpen || isDeleteModalOpen }" x-data="topicsApp()" x-cloak>
 
     <div class="max-w-6xl mx-auto px-4 py-8 md:py-12">
 
@@ -163,15 +173,15 @@
     </div>
 
     <div x-show="isCreateModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" x-cloak>
-        <div @click.away="isCreateModalOpen = false" class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
-            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <div @click.away="isCreateModalOpen = false" class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
                 <h3 class="font-bold text-xl text-slate-900">Create New Topic</h3>
                 <button @click="isCreateModalOpen = false" class="text-slate-400 hover:text-slate-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            
-            <div class="p-6 space-y-5">
+
+            <div class="p-6 space-y-5 overflow-y-auto no-scrollbar">
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Topic Title</label>
                     <input type="text" x-model="newTopic.title" placeholder="e.g. Climate Change Policy" class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none text-slate-800 font-medium">
@@ -184,7 +194,7 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Brief Description</label>
                     <textarea x-model="newTopic.description" rows="3" placeholder="What is this debate about?" class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none text-slate-800 resize-none"></textarea>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-3">Theme Color</label>
                     <div class="flex flex-wrap gap-4">
@@ -208,7 +218,7 @@
                 </div>
             </div>
 
-            <div class="px-6 py-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+            <div class="px-6 py-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
                 <button @click="isCreateModalOpen = false" class="px-5 py-2.5 text-slate-600 hover:text-slate-800 font-semibold transition-colors">Cancel</button>
                 <button @click="saveNewTopic()" class="px-5 py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-900 font-semibold transition-colors shadow-sm">Create Topic</button>
             </div>
